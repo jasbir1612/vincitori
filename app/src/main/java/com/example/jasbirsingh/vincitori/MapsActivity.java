@@ -28,6 +28,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
 //    double i=0;
+    int PLACE_PICKER_REQUEST = 1;
 
 
     @Override
@@ -61,12 +62,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             onLocationChanged(location);
         }
         locationManager.requestLocationUpdates(bestProvider, 20000, 0, this);
+//
 
     }
 
     @Override
     public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
-        
+
         return super.onCreateView(parent, name, context, attrs);
     }
 
