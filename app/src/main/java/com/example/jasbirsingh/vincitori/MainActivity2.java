@@ -1,7 +1,12 @@
 package com.example.jasbirsingh.vincitori;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +18,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -32,19 +38,30 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MainActivity2 extends FragmentActivity {
+public class MainActivity2 extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
+
+    Context context;
     // GoogleMap
     GoogleMap mGoogleMap;
 
@@ -59,6 +76,8 @@ public class MainActivity2 extends FragmentActivity {
 
     // A String array containing place types sent to Google Place service
     String[] mPlaceType = null;
+
+    String URL = "https://b86b0a76.ngrok.io/api/location/create.json";
 
     // A String array containing place types displayed to user
     String[] mPlaceTypeName = null;
@@ -75,6 +94,9 @@ public class MainActivity2 extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!isGooglePlayServicesAvailable()) {
+            finish();
+        }
         setContentView(R.layout.activity_main2);
         mPlaceType = getResources().getStringArray(R.array.place_type);
         mPlaceTypeName = getResources().getStringArray(R.array.place_type_name);
@@ -96,6 +118,7 @@ public class MainActivity2 extends FragmentActivity {
         } else {
             SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
             mGoogleMap = fragment.getMap();
+            fragment.getMapAsync(this);
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
@@ -107,6 +130,16 @@ public class MainActivity2 extends FragmentActivity {
                 return;
             }
             mGoogleMap.setMyLocationEnabled(true);
+
+            LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            Criteria criteria = new Criteria();
+            String bestProvider = locationManager.getBestProvider(criteria, true);
+            Location location = locationManager.getLastKnownLocation(bestProvider);
+            if (location != null) {
+                onLocationChanged(location);
+            }
+            locationManager.requestLocationUpdates(bestProvider, 20000, 0, this);
+
             if(savedInstanceState !=null) {
 
                 // Remove links from marker id
@@ -173,6 +206,24 @@ public class MainActivity2 extends FragmentActivity {
 
                     // Invokes the "doInBackground()" method of the class PlaceTask
                     placesTask.execute(sb.toString());
+
+
+
+
+
+                    final String id = Integer.toString(1000);
+                    final String strname = "name";
+                    final String strLat = Double.toString(mLocation.latitude);
+                    final String strLon = Double.toString(mLocation.longitude);
+                    Log.d("maps", "the values are: " +id +strname +strLat +strLon);
+
+
+
+
+                    PostLocation();
+
+
+
                 }
             });
 
@@ -187,9 +238,16 @@ public class MainActivity2 extends FragmentActivity {
 
                     // Setting the touched location in member variable
                     mLocation = point;
+                    Log.d("marker", "The location is: " +mLocation);
 
                     // Drawing a marker at the touched location
                     drawMarker(mLocation,BitmapDescriptorFactory.HUE_GREEN);
+
+
+
+
+
+
                 }
             });
 
@@ -288,6 +346,156 @@ public class MainActivity2 extends FragmentActivity {
         }
         return data;
     }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+        final double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+        LatLng latLng = new LatLng(latitude, longitude);
+        mGoogleMap.addMarker(new MarkerOptions().position(latLng));
+        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        Toast.makeText(this, "" +latitude +longitude, Toast.LENGTH_SHORT).show();
+        Log.d("loc", "" +latitude +longitude);
+//
+//        final String strLat = Double.toString(latitude);
+//        final String strLon = Double.toString(longitude);
+
+
+//        StringRequest jsonObjRequest = new StringRequest(Request.Method.POST, URL,
+//                new Response.Listener<String>(){
+//
+//                    @Override
+//                    public void onResponse(String response) {
+//
+//                    }
+//                }, new Response.ErrorListener(){
+//
+//            @Override
+//            public void onErrorResponse(VolleyError error) {
+//
+//            }
+//        }){
+//
+//            @Override
+//            public String getBodyContentType() {
+//                return "application/x-www-form-urlencoded";
+//            }
+//
+//            @Override
+//            protected Map<String, String> getParams(){
+//                Map<String,String> params = new HashMap<String, String>();
+//                params.put("id", "10000");
+//                params.put("name", "name");
+//                params.put("lat", strLat);
+//                params.put("lon", strLon);
+//
+//                return params;
+//            }
+//        };
+//        RequestQueue requestQueue = Volley.newRequestQueue(this);
+//        requestQueue.add(jsonObjRequest);
+
+    }
+
+
+
+    private void PostLocation()
+    {
+
+
+
+        final String id = Integer.toString(1000).trim();
+        final String strname = "name";
+//        final String strLat = Double.toString(mLocation.latitude).trim();
+//        final String strLon = Double.toString(mLocation.longitude).trim();
+
+        final String strLat = String.format("%.5f", mLocation.latitude);
+        final String strLon = String.format("%.5f", mLocation.longitude);
+
+        Log.d("maps", "the values are: " +id +strname +strLat +strLon);
+
+
+        StringRequest jsonObjRequest = new StringRequest(Request.Method.POST, URL,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Toast.makeText(MainActivity2.this,response,Toast.LENGTH_LONG).show();
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(MainActivity2.this,error.toString(),Toast.LENGTH_LONG).show();
+                        Log.d("error", error.toString());
+                    }
+                }){
+
+            @Override
+            public String getBodyContentType() {
+                return "application/x-www-form-urlencoded";
+            }
+
+            @Override
+            protected Map<String,String> getParams(){
+                Map<String,String> params = new HashMap<String, String>();
+                params.put("id", id);
+                params.put("longitude", strLon);
+                params.put("latitude", strLat);
+                params.put("name",strname);
+                return params;
+            }
+
+        };
+
+
+//        AppController.getInstance().addToRequestQueue(jsonObjRequest);
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(jsonObjRequest);
+
+    }
+
+
+
+
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String s) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String s) {
+
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mGoogleMap = googleMap;
+
+        // Add a marker in Sydney and move the camera
+        LatLng sydney = new LatLng(-34, 151);
+        mGoogleMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+    }
+
+    private boolean isGooglePlayServicesAvailable() {
+        int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if (ConnectionResult.SUCCESS == status) {
+            return true;
+        } else {
+            GooglePlayServicesUtil.getErrorDialog(status, this, 0).show();
+            return false;
+        }
+    }
+
+
     /** A class, to download Google Places */
     private class PlacesTask extends AsyncTask<String, Integer, String>{
 
