@@ -19,6 +19,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 
 import org.json.JSONObject;
 
@@ -84,6 +88,7 @@ public class MainActivity2 extends FragmentActivity implements OnMapReadyCallbac
 
     // The location at which user touches the Google Map
     LatLng mLocation = null;
+    Location location;
 
     // Links marker id and place object
     HashMap<String, Place> mHMReference = new HashMap<String, Place>();
@@ -134,11 +139,27 @@ public class MainActivity2 extends FragmentActivity implements OnMapReadyCallbac
             LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
             Criteria criteria = new Criteria();
             String bestProvider = locationManager.getBestProvider(criteria, true);
-            Location location = locationManager.getLastKnownLocation(bestProvider);
+            location = locationManager.getLastKnownLocation(bestProvider);
             if (location != null) {
                 onLocationChanged(location);
             }
             locationManager.requestLocationUpdates(bestProvider, 20000, 0, this);
+
+
+            int delay = 0; // delay for 0 sec.
+            int period = 10000; // repeat every 10 sec.
+            Timer timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask()
+            {
+                public void run()
+                {
+                    //Call function
+//                    PostLocation();
+                }
+            }, delay, period);
+
+
+
 
             if(savedInstanceState !=null) {
 
@@ -216,11 +237,6 @@ public class MainActivity2 extends FragmentActivity implements OnMapReadyCallbac
                     final String strLat = Double.toString(mLocation.latitude);
                     final String strLon = Double.toString(mLocation.longitude);
                     Log.d("maps", "the values are: " +id +strname +strLat +strLon);
-
-
-
-
-                    PostLocation();
 
 
 
@@ -411,8 +427,8 @@ public class MainActivity2 extends FragmentActivity implements OnMapReadyCallbac
 //        final String strLat = Double.toString(mLocation.latitude).trim();
 //        final String strLon = Double.toString(mLocation.longitude).trim();
 
-        final String strLat = String.format("%.5f", mLocation.latitude);
-        final String strLon = String.format("%.5f", mLocation.longitude);
+        final String strLat = String.format("%.5f", location.getLatitude());
+        final String strLon = String.format("%.5f", location.getLongitude());
 
         Log.d("maps", "the values are: " +id +strname +strLat +strLon);
 
