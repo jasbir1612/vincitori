@@ -72,8 +72,8 @@ public class MainActivity2 extends FragmentActivity implements OnMapReadyCallbac
     // Spinner in which the location types are stored
     Spinner mSprPlaceType;
 
-    // A button to find the near by places
-    Button mBtnFind = null;
+    // A button to find the near by pl1aces
+    Button mBtnFind = null, food, accessibility, transport, favourites;
 
     // Stores near by places
     Place[] mPlaces = null;
@@ -89,6 +89,7 @@ public class MainActivity2 extends FragmentActivity implements OnMapReadyCallbac
     // The location at which user touches the Google Map
     LatLng mLocation = null;
     Location location;
+
 
     // Links marker id and place object
     HashMap<String, Place> mHMReference = new HashMap<String, Place>();
@@ -145,16 +146,15 @@ public class MainActivity2 extends FragmentActivity implements OnMapReadyCallbac
             }
             locationManager.requestLocationUpdates(bestProvider, 20000, 0, this);
 
-
             int delay = 0; // delay for 0 sec.
-            int period = 10000; // repeat every 10 sec.
+            int period = 20000; // repeat every 100 sec.
             Timer timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTask()
             {
                 public void run()
                 {
                     //Call function
-//                    PostLocation();
+                    PostLocation();
                 }
             }, delay, period);
 
